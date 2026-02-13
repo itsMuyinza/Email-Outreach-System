@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/myoutreach
+      - REDIS_URL=redis://redis:6379
+      - BROWSER_WS_ENDPOINT=ws://browser:3000
+      - API_KEY=${API_KEY}
+    depends_on:
+      - db
+      - redis
+      - browser
+
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=myoutreach
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  browser:
+    image: browserless/chrome:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - MAX_CONCURRENT_SESSIONS=10
+      - CONNECTION_TIMEOUT=300000
+    restart: always
+
+volumes:
+  pgdata:
